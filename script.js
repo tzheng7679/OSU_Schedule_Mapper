@@ -78,3 +78,6 @@ function addMaps() {
 function getDay(day) {
 
 }
+
+
+main()
