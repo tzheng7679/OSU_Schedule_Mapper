@@ -1,5 +1,7 @@
-import { Component, AfterViewInit } from '@angular/core';
+import { Component, AfterViewInit, input } from '@angular/core';
 import * as L from 'leaflet';
+
+const pomereneLat = 39.997558210128304, pomereneLong = -83.01435788813387;
 
 @Component({
 	selector: 'app-map-tab',
@@ -15,9 +17,10 @@ export class MapTabComponent implements AfterViewInit {
 	 */
 	private initMap(): void {
 		this.map = L.map('map', {
-			center: [39.997558210128304, -83.01435788813387],
+			center: [pomereneLat, pomereneLong],
 			zoom: 15
 		});
+		this.map.setMaxBounds(this.map.getBounds());
 
 		const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			maxZoom: 18,

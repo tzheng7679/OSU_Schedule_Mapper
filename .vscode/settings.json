@@ -1,0 +1,6 @@
+{
+    "files.exclude": {
+        "**/*.json": true,
+        "**/.*": true
+    }
+}
