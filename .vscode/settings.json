@@ -1,6 +1,7 @@
 {
     "files.exclude": {
         "**/*.json": true,
-        "**/.*": true
+        "**/.*": true,
+        "**/*.spec.ts": true,
     }
 }

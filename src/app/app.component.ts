@@ -5,7 +5,7 @@ import { GetLocsComponent } from "./get-locs/get-locs.component";
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, MapTabComponent, GetLocsComponent],
+  imports: [MapTabComponent, GetLocsComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
+
+import { processData } from './sched_parser';
 
 @Component({
 	selector: 'app-get-locs',
@@ -8,9 +10,9 @@ import { ReactiveFormsModule, FormControl } from '@angular/forms';
 	styleUrl: './get-locs.component.css',
 })
 export class GetLocsComponent {
-	file = new FormControl(null);
+	text = new FormControl("", );
 
-	onUpload(event: Event) {
-		
+	onUpdate() {
+		console.log(processData(this.text.value as string));
 	}
 }

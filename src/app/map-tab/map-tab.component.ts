@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, input } from '@angular/core';
+import { Component, AfterViewInit, input, ViewChild, ElementRef } from '@angular/core';
 import * as L from 'leaflet';
 
 const pomereneLat = 39.997558210128304, pomereneLong = -83.01435788813387;
@@ -10,13 +10,18 @@ const pomereneLat = 39.997558210128304, pomereneLong = -83.01435788813387;
 	styleUrls: ['./map-tab.component.css']
 })
 export class MapTabComponent implements AfterViewInit {
-	private map: any;
+	private map: L.Map | undefined;
+	@ViewChild('mapDiv') mapElementRef: ElementRef | undefined;
+	
+	ngAfterViewInit(): void {
+		this.initMap();
+	}
 	
 	/**
 	 * Initalizes the map.
 	 */
 	private initMap(): void {
-		this.map = L.map('map', {
+		this.map = L.map(this.mapElementRef?.nativeElement, {
 			center: [pomereneLat, pomereneLong],
 			zoom: 15
 		});
@@ -31,9 +36,4 @@ export class MapTabComponent implements AfterViewInit {
 		tiles.addTo(this.map);
 	}
 
-	constructor() { }
-
-	ngAfterViewInit(): void {
-		this.initMap();
-	}
 }
