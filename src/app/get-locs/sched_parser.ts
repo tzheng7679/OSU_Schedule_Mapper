@@ -140,6 +140,7 @@ function preProcessData(tokens: Array<string>) {
  * @param {} text - The tokens to process.
  */
 export function processData(text: string) {
+    console.log(text.split(/\t/));
     // PDF text
     let tokens = text.split(/[\t\n]/);
     preProcessData(tokens)
