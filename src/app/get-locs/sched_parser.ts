@@ -1,3 +1,6 @@
+const BASE_MAGIC_KEY_URL = "https://gissvc.osu.edu/arcgis/rest/services/Apps/Campusmap_OSU_Buildings_Locator/GeocodeServer/suggest?";
+const BASE_COORDINATE_URL = "https://gissvc.osu.edu/arcgis/rest/services/Apps/Campusmap_OSU_Buildings_Locator/GeocodeServer/findAddressCandidates?";
+
 /**
  * Enum of fields for each course.
  */
@@ -14,34 +17,34 @@ enum Fields {
 /**
  * Enum of days for each day of school week
  */
-enum Days {
-    MON,
-    TUE,
-    WED,
-    THU,
-    FRI
-}
-
+export const MON=0, TUE=1, WED=2, THU=3, FRI=4;
+export const DAYS=[MON,TUE,WED,THU,FRI];
 /**
  * Representation of a course.
  */
-class Course {
+export class Course {
     department: string;
     number: string;
     building: string;
-    days: Days[];
-    start: string;
-    end: string;
+    days: number[];
+    start: Date; // represented as a time during 1/1/1970
+    end: Date; // represented as a time during 1/1/1970
+    inPerson: boolean;
+    coords: number[] | null;
 
-    constructor(department: string, number: string, days: Days[], start: string, end: string, building: string) {
+    constructor(department: string, number: string, days: number[], start: Date, end: Date, building: string, inPerson: boolean, coords: number[] | null) {
         this.department = department;
         this.number = number;
         this.building = building;
         this.days = days;
         this.start = start;
         this.end = end;
+        this.inPerson = inPerson;
+        this.coords = coords;
     }
 }
+
+const DEP_INDEX = 1, NUM_INDEX = 2, DAYTIMELOC_INDEX = 7, MODE_INDEX = 10;
 
 /**
  * Returns a {@linkcode Course} filled with the fields given.
@@ -52,86 +55,62 @@ class Course {
  * @param {string} end - The end time
  * @param {string} bui - The course building
  */
-function stringsToCourse(dep: string, num: string, days: string, sta: string, end: string, bui: string) {
-    // console.log("Attributes:");
-    // console.log("-----------");
-    // console.log(dep);
-    // console.log(num);
-    // console.log(days);
-    // console.log(sta);
-    // console.log(end);
-    // console.log(bui);
-    // console.log("\n\n");
-    let day_array: Days[] = [];
-    if(days.search("M") != -1) {
-        day_array.push(Days.MON);
+function stringsToCourse(dep: string, num: string, days: string, sta: string, end: string, bui: string, inPerson: boolean, coords: number[] | null): Course {
+    let day_array: number[] = [];
+    if (days.search("M") != -1) {
+        day_array.push(MON);
     }
-    if(days.search(/t($|[^h])/i) != -1) {
-        day_array.push(Days.TUE);
+    if (days.search(/t($|[^h])/i) != -1) {
+        day_array.push(TUE);
     }
-    if(days.search("W") != -1) {
-        day_array.push(Days.WED);
+    if (days.search("W") != -1) {
+        day_array.push(WED);
     }
-    if(days.search("Th") != -1) {
-        day_array.push(Days.THU);
+    if (days.search("Th") != -1) {
+        day_array.push(THU);
     }
-    if(days.search("F") != -1) {
-        day_array.push(Days.FRI);
+    if (days.search("F") != -1) {
+        day_array.push(FRI);
     }
 
-    return new Course(dep, num, day_array, sta, end, bui);
+    return new Course(dep, num, day_array, new Date("1 Jan 1970 " + sta), new Date("1 Jan 1970 " + end), bui, inPerson, coords);
 }
 
-/**
- * Cleanses `tokens`, by seperating times and spaces and combined words.
- * @param {} tokens 
- */
-function preProcessData(tokens: Array<string>) {
-    // finds letters followed by numbers, and seperates them into seperate strings
-    let i = 0;
-    const letterNumber = /[a-zA-Z]\d/;
-    while(i < tokens.length) {
-        let index = tokens[i].search(letterNumber);
-        if(index != -1) {
-            tokens.splice(i + 1, 0, tokens[i].substring(index + 1));
-            tokens[i] = tokens[i].substring(0, index + 1);
-        }
-        i++;
-    }
+function splitIntoCourseTokens(tokens: Array<string>) {
+    let courseTokens = [];
 
-    // seperates online into its own token
-    for(let i = tokens.length - 1; i >= 0; i--) {
-        let token = tokens[i];
-        if(token.search(/.(Online)/) != -1) {
-            tokens[i] = token.substring(0, token.search(/(Online)/));
-            tokens.splice(i + 1, 0, "Online");
+    let start = 0;
+    for (let i = 0; i < tokens.length; i++) {
+        if (tokens[i] == "\n") {
+            courseTokens.push(tokens.slice(start, i));
+            start = i + 1;
         }
     }
+    courseTokens.push(tokens.slice(start,));
 
-    // removes all hyphens
-    for(let i = 0; i < tokens.length; i++) {
-        tokens[i] = tokens[i].replaceAll("-", "");
-    }
+    return courseTokens;
+}
 
-    // seperates spaces into new entries
-    for(let i = tokens.length - 1; i >= 0; i--) {
-        let split = tokens[i].split(" ").reverse();
+async function getCoordinates(inPerson: boolean, loc: string): Promise<number[] | null> {
 
-        for(let entry of split) {
-            if(entry.length > 0) {
-                tokens.splice(i + 1, 0, entry);
-            }
-        }
-
-        tokens.splice(i, 1);
-    }
-
-    // removes pairs of "Not Enrolled" tokens
-    for(let i = tokens.length - 2; i >= 0; i--) {
-        if(tokens[i].match("Not") && tokens[i + 1].match("Enrolled")) {
-            tokens.splice(i, 2)
-            i--;
-        }
+    if(!inPerson) {
+        return null;
+    } else { // fetch coords from OSU api and push to courses
+        return fetch(
+            BASE_MAGIC_KEY_URL + new URLSearchParams({ "text": loc, "f": "json" }) // get magic key
+        ).then((response) => // parse magic key json
+            response.json()
+        ).then((json) => // get coordinates using magic key
+            fetch(BASE_COORDINATE_URL + new URLSearchParams({
+                "magicKey": json.suggestions[0].magicKey,
+                "f": "json",
+                "outSR": "4140"
+            })).then((response) => // parse coords json
+                response.json()
+            ).then((json) => // get coords from json
+                [json.candidates[0].location.x, json.candidates[0].location.y]
+            )
+        )
     }
 }
 
@@ -139,72 +118,35 @@ function preProcessData(tokens: Array<string>) {
  * Parses the pre-processed tokens into a list of courses.
  * @param {} text - The tokens to process.
  */
-export function processData(text: string) {
-    console.log(text.split(/\t/));
-    // PDF text
-    let tokens = text.split(/[\t\n]/);
-    preProcessData(tokens)
-    console.log(tokens);
+export async function processData(text: string): Promise<Array<Course>> {
+    return new Promise(async (resolve) => { 
+        text = text.slice(text.search("\t\n\t") + 3); // format text to remove any filler at beginning
+        let tokens = text.split(/\t/); // split based on cell dividers (which are just tabs)
 
-    let courses = [];
-    var dep = "", num = "", bui = "", days = "", start = "", end = "";
+        let courses = new Array<Course>;
 
-    let currField = Fields.DEP;
-    
-    let i = 0;
-    while(i < tokens.length) {
-        let token = tokens[i];
-        i++;
+        try {
+            for (let course of splitIntoCourseTokens(tokens)) {
+                let dep = course[DEP_INDEX].trim();
+                let num = course[NUM_INDEX].trim();
 
-        switch(currField) {
-            case Fields.DEP:
-                if(token.search(/\d/) == -1) { // if there is no number
-                    dep += token + " ";
-                } else { // if there is a number (must be course number)
-                    num = token;
-                    currField = Fields.DAY;
-                }
-                break;
+                let dayTimeLoc = course[DAYTIMELOC_INDEX].trim().split(" ");
+                let days = dayTimeLoc[0];
+                let start = dayTimeLoc[1];
+                let end = dayTimeLoc[3];
+                let loc = dayTimeLoc.slice(5,).join(' ');
 
-            case Fields.DAY:
-                if(token.search(/(Online)/) != -1) {
-                    currField = Fields.NA;
-                } else {
-                    days += token;
-                    currField = Fields.STA;
-                }
-                break;
-            
-            case Fields.STA:
-                start += token;
-                currField = Fields.END;
-                break;
-            
-            case Fields.END:
-                end += token;
-                currField = Fields.BUI;
-                break;
-            
-            case Fields.BUI:
-                if(token.search(/(Regular)/) == -1) { // only add token if doesn't contain "Regular" (done so that location is not shown as "Online Regular")
-                    bui += token + " ";
-                }    
-                if(token.search(/\d/) != -1 || token.search(/(Regular)/) != -1) {
-                    currField = Fields.NA;
-                }                
-                break;
-            
-            case Fields.NA:
-                if(token.search(/(Person)/) != -1 || token.search(/(Enhanced)/) != -1 || token.search(/(Learning)/) != -1) {
-                    courses.push(stringsToCourse(dep, num, days, start, end, bui));
-                    dep = "", num = "", days = "", start = "", end = "", bui = "";
-                    
-                    i++;
-                    currField = Fields.DEP;
-                }
-                break;
+                let mode = course[MODE_INDEX];
+                let inPerson = mode.search(/(in person)/i) != -1;
+
+                await getCoordinates(inPerson, loc).then((coords) => // get coords then push to list
+                    courses.push(stringsToCourse(dep, num, days, start, end, loc, inPerson, coords))
+                );
+            }
+        } catch {
+            console.log("Invalid input");
         }
-    }
 
-    return courses;
+        resolve(courses);
+    })
 }

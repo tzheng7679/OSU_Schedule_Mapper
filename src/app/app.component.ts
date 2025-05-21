@@ -1,14 +1,20 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { MapTabComponent } from "./map-tab/map-tab.component";
+import { Component, QueryList, ViewChildren } from '@angular/core';
 import { GetLocsComponent } from "./get-locs/get-locs.component";
+import { Course, DAYS } from './get-locs/sched_parser';
+import { MapTabComponent } from "./map-tab/map-tab.component";
 
 @Component({
-  selector: 'app-root',
-  imports: [MapTabComponent, GetLocsComponent],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+	selector: 'app-root',
+	imports: [MapTabComponent, GetLocsComponent],
+	templateUrl: './app.component.html',
+	styleUrl: './app.component.css'
 })
 export class AppComponent {
-  title = 'osu_schedule_map';
+	@ViewChildren(MapTabComponent) mapTabs!: QueryList<MapTabComponent>;
+	
+	public updateMaps(schedules: Course[][]): void {
+		schedules.forEach((daySchedule, i) => {
+			this.mapTabs.get(i)?.plantClasses(daySchedule);
+		})
+	}
 }

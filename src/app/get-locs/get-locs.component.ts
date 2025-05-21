@@ -1,7 +1,8 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Output, ViewChild } from '@angular/core';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 
-import { processData } from './sched_parser';
+import { processData, DAYS, Course, FRI } from './sched_parser';
+
 
 @Component({
 	selector: 'app-get-locs',
@@ -11,18 +12,34 @@ import { processData } from './sched_parser';
 })
 export class GetLocsComponent {
 	text = new FormControl("", );
+	@Output() emitSchedulesEvent = new EventEmitter<Course[][]>;
 
-	onUpdate() {
-		let courses = processData(this.text.value as string); 
-		console.log(courses);
-
-		
-// use geocoder api at https://gissvc.osu.edu/arcgis/rest/services/Apps/Campusmap_OSU_Buildings_Locator/GeocodeServer/findAddressCandidates?Address=&Address2=&Address3=&Neighborhood=&City=&Subregion=&Region=&Postal=&PostalExt=&CountryCode=&SingleLine=&outFields=&maxLocations=&matchOutOfRange=true&langCode=&locationType=&sourceCountry=&category=&location=&searchExtent=&outSR=4140&magicKey=dHA9MCNsb2M9MjU4I2xuZz0wI2ZhPTY1NTM2&preferredLabelValues=&f=html
-
-// make sure to use output spatial reference of 4140; this gives the lattitude and longitude as the output coordinates, instead of some weird projected bullshit
-
-// use magic key from suggest api to make life easy
+	async onUpdate() {
+		let courses = await processData(this.text.value as string);
+		this.emitSchedulesEvent.emit(this.getDaySchedule(courses));
 	}
 
-	
+	/**
+	 * Helper method for formatting `Array<Course>` as a 2d matrix of courses in order
+	 * 
+	 * @param courses 
+	 * @returns A 2d matrix of courses in chronological order
+	 */
+	private getDaySchedule(courses: Course[]) {
+		let schedules = [];
+
+		for(let day of DAYS) {
+			let daySchedule: Course[] = [];
+			for(let course of courses) {
+				if(course.days.includes(day)) {
+					daySchedule.push(course);
+				}
+			}
+			daySchedule.sort((a, b) => (a.start.getTime() - b.start.getTime()))	
+			
+			schedules.push(daySchedule);
+		}
+
+		return schedules;
+	}
 }
