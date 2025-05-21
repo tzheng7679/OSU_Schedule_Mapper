@@ -27,9 +27,7 @@ export class MapTabComponent implements AfterViewInit {
 		this.day = day;
 	}
 
-	ngAfterViewInit(): void {
-		this.initMap();
-	}
+	ngAfterViewInit(): void { this.initMap(); }
 	
 	/**
 	 * Initalizes the map.
@@ -39,7 +37,6 @@ export class MapTabComponent implements AfterViewInit {
 			center: [pomereneLat, pomereneLong],
 			zoom: 14
 		});
-		// this.map.setMaxBounds(this.map.getBounds());
 		const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			maxZoom: 18,
 			minZoom: 14,
@@ -63,19 +60,32 @@ export class MapTabComponent implements AfterViewInit {
 		for(let line of this.lines) { this.map!.removeLayer(line); }
 		this.lines = [];
 
-		// add new markers and tooltips
-		courses.forEach((course, number) => {
-			this.createMarker(course, number, courses.length - number);
+		// add new markers, tooltips, and routes
+		courses.forEach((course, number) => 
+			this.markers.push(this.createMarker(course, number, courses.length))
+		)
+		this.drawRoute();
+
+		this.uncollideTooltips(); // do initial uncollision
+
+		this.oms.addListener('spiderfy', (markers: L.Marker[]) => { // add listener for removing offsets when expanding colliding markers
+			markers.forEach((marker, index) => {
+				marker.bindTooltip(marker.getTooltip()!, { // position tooltip so it doesn't collide with other tooltips/markers
+					"offset": L.point(-15, 0), // position so centered over marker
+					direction: (index < markers.length/2 ? "bottom" : "top") 
+				})
+				marker.closePopup(); // close the popup for easier navigation
+			})
 		})
-
-		// add new lines
-		for(let i = 1; i < this.markers.length; i++) {
-			let line = L.polyline([this.markers[i-1].getLatLng(), this.markers[i].getLatLng()]);
-			line.addTo(this.map!);
-			this.lines.push(line);
-		}
-
-		this.uncollideTooltips();
+		this.oms.addListener('unspiderfy', (markers: L.Marker[]) => { // add listener for re-adding offsets when collapsing colliding markers
+			markers.forEach((marker) =>
+				marker.bindTooltip(marker.getTooltip()!, {
+					"offset": L.point(0, 0) // remove original offset in line 74
+				})
+			)
+			this.uncollideTooltips(); // re-add offsets
+			markers.forEach((marker) => marker.bindTooltip(marker.getTooltip()!, { direction: "auto" })) // reset direction to auto
+		});
 	}
 
 	/**
@@ -96,36 +106,52 @@ export class MapTabComponent implements AfterViewInit {
 		marker.bindPopup(`
 			${course.department} ${course.number}<br>
 			${course.building}<br>
-			${course.start.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} -- ${course.end.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`
-		)
+			${course.start.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} -- ${course.end.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+			<br><br>
+			Class ${number+1}/${total}
+		`)
 		marker.addTo(this.map!);
 
 		// create tooltip for showing order of classes
 		marker.bindTooltip(`${number+1}`, { 
 			permanent: true, 
-			opacity: 1
+			opacity: 1,
 		})
 
 		marker.getTooltip()
 
 		// add marker to map and store
 		this.oms.addMarker(marker);
-		this.markers.push(marker);
 
 		return marker;
 	}
 
 	/**
-	 * Helper method for "uncolliding" tooltips. Doesn't actually do it; instead, it adds the labels of the colliding tooltips to the very top tooltip, so that the top tooltip says what is below it.
+	 * draws the route between markers.
+	 */
+	private drawRoute() {
+		// add new lines
+		for(let i = 1; i < this.markers.length; i++) {
+			let line = L.polyline([this.markers[i-1].getLatLng(), this.markers[i].getLatLng()]);
+			line.addTo(this.map!);
+			this.lines.push(line);
+		}
+	}
+
+	/**
+	 * Helper method for "uncolliding" tooltips. Moves tooltips out of the way with an offset if they collide.
 	 */
 	private uncollideTooltips() {
+		// add offset to colliding tooltips
 		for(let i = this.markers.length - 1; i >= 0; i--) {
 			for(let j = i - 1; j >= 0; j--)  {
 				let markerI = this.markers[i], markerJ = this.markers[j];
-				if(markerI.getLatLng().equals(markerJ.getLatLng())) {
-					let markerIOffset = markerI.getTooltip()!.options["offset"]!;
-					let newOffset = L.point(25, 0).add(markerIOffset);
-					markerI.bindTooltip(markerI.getTooltip()!, { offset: newOffset });
+				if(markerI.getLatLng().equals(markerJ.getLatLng()) // if two tooltips are in the same location 
+					&& (L.point(0,0).equals(markerJ.getTooltip()!.options.offset!)) // and the second one hasn't been offset yet, then uncollide them
+				) { 
+					let markerIOffset = markerI.getTooltip()!.options["offset"]!; // get offset of first marker
+					let newOffset = L.point(25, 0).add(markerIOffset); // get what that offset would be but an extra step
+					markerI.bindTooltip(markerI.getTooltip()!, { offset: newOffset }); // add offset to colliding tooltip
 				}
 			}
 		}
