@@ -1,0 +1,20 @@
+/* center textbox, label */
+:host {
+	display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+/* set maps as column when on mobile */
+@media only screen and (max-width: 768px) {
+  :host {
+    flex-direction: column;
+  }
+}
+/* set maps as row when on desktop */
+@media only screen and (min-width: 768px) {
+  :host {
+    /* display: inline-flex; */
+    flex-direction: row;
+  }
+}

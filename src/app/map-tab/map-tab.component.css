@@ -1,11 +1,30 @@
-.map-frame {
-  min-height: 250px;
-  aspect-ratio: 1/1.5;
+:host {
   display: flex;
-  border: 2px solid black;
-  flex: 1 1;
+  flex-direction: column;
+  text-align: center;
 }
 
+/* set maps as column when on mobile */
+@media only screen and (max-width: 768px) {
+  :host {
+    width: 90%;
+  }
+}
+/* set maps as row when on desktop */
+@media only screen and (min-width: 768px) {
+  :host {
+    /* display: inline-flex; */
+    width: 20%;
+  }
+}
+
+/* style maps */
+.map-frame {
+  display: flex;
+
+  aspect-ratio: 1/1.5;
+  border: 2px solid black;
+}
 .map {
   flex: 1;
 }

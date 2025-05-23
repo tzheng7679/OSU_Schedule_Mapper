@@ -1,11 +1,6 @@
-html, body {
-  margin: 0px;
-  height: 100%;
-}
-
-app-root {
-  display: block;
-  width: 100%;
-  height: 100%;
-  justify-content: center;
+body {
+  /* set font for app */
+  font-size: 1em;
+  font-weight: bold;
+  font-family: sans-serif;
 }
