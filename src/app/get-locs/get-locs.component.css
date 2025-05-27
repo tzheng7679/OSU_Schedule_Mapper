@@ -3,18 +3,18 @@
 	display: flex;
   justify-content: center;
   text-align: center;
+  
+  max-width: 65em;
+  margin: auto auto;
 }
 
-/* set maps as column when on mobile */
-@media only screen and (max-width: 768px) {
-  :host {
-    flex-direction: column;
-  }
+label {
+  flex: 1 1;
 }
-/* set maps as row when on desktop */
-@media only screen and (min-width: 768px) {
-  :host {
-    /* display: inline-flex; */
-    flex-direction: row;
-  }
+
+textarea {
+  min-width: 45em;
+  max-width: 65em;
+
+  max-height: 5em;
 }

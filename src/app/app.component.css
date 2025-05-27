@@ -1,6 +1,6 @@
-:host {
-  font-weight: bolder;
+app-get-locs {
   font-size: larger;
+  font-weight: bolder;
 }
 
 .map-tab-container {
@@ -8,4 +8,32 @@
   flex-wrap: wrap;
   justify-content: center;
   row-gap: 10px;
+  column-gap: 10px;
+
+  font-size: larger;
+  font-weight: bolder;
+}
+
+.instructions {
+  margin: 20px auto;
+  max-width: 65em;
+  line-height: 1.6;
+}
+
+/* figure sizing */
+figure {
+  width: 90%;
+  margin: 20px auto;
+
+  text-align: center;
+  font-style: italic;
+
+  .img-container {
+    position: relative;
+    min-height: 300px;
+    
+    img {
+      object-fit: contain;
+    }
+  }
 }

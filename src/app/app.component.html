@@ -1,3 +1,28 @@
+<!-- Site instructions -->
+<div class="instructions">
+    <h1>OSU Schedule Mapper</h1>
+    For finding where the hell your classes are on campus.
+    <h2>Usage Guide</h2>
+
+    <ol>
+        <li>Open your schedule in OSU's Schedule Planner and copy everything (Ctrl + A, then Ctrl + C).</li>
+
+        <figure>
+            <div class="img-container"><img ngSrc="course_schedule.png" fill></div>
+            <figcaption> Yes this is my actual schedule. Please don't use it for nefarious purposes. </figcaption>
+        </figure>
+        
+        <li>Then, come back to my website, and paste it into the textbox below. Your planned classes will then show up in the maps, as demonstrated below.</li>
+        <figure>
+            <div class="img-container"><img ngSrc="sample_schedule.png" fill priority></div>
+        </figure>
+    </ol>
+
+    For each day, each location is labeled by what order the classes are in (e.g. if your second class of the day is at Dreese Labs, then a marker on Dreese will be labeled with a 2). Clicking/tapping a marker on the map will show you the details for the class. 
+
+    If you have multiple classes in the same location, it will be labeled for each class; tapping on the marker will cause multiple markers to come out from the original marker - with each labeled by their order - and then you can click on any of the individual markers to view class details.
+</div>
+
 <app-get-locs (emitSchedulesEvent)="updateMaps($event)"></app-get-locs>
 
 <div class="map-tab-container">

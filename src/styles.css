@@ -4,24 +4,3 @@ body {
   font-family: sans-serif;
 }
 
-.instructions {
-  margin: 20px auto;
-  max-width: 65em;
-  line-height: 1.6;
-}
-
-figure {
-  width: 90%;
-  margin: 20px auto;
-
-  text-align: center;
-
-  img {
-    width: 100%;
-  }
-
-  figcaption {
-    font-style: italic;
-  }
-}
-
