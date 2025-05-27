@@ -9,9 +9,30 @@
         <!-- Leaflet -->
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin>
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin></script>
-    <style>body{font-size:1em;font-weight:700;font-family:sans-serif}</style><link rel="stylesheet" href="styles-RIDQSMPJ.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="styles-RIDQSMPJ.css"></noscript></head>
+    <style>body{font-size:1em;font-family:sans-serif}.instructions{margin:20px auto;max-width:65em;line-height:1.6}figure{width:90%;margin:20px auto;text-align:center}figure img{width:100%}figure figcaption{font-style:italic}</style><link rel="stylesheet" href="styles-4VLN4HRY.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="styles-4VLN4HRY.css"></noscript></head>
 
     <body>
-        <app-root></app-root>
-    <script src="polyfills-FFHMD2TL.js" type="module"></script><script src="main-NGGBRXYZ.js" type="module"></script></body>
+        <div class="instructions">
+            <h1>OSU Schedule Mapper</h1>
+            For finding where the hell you're classes are on campus.
+            <h2>Usage Guide</h2>
+
+            <ol>
+                <li>Open your schedule in OSU's Schedule Planner and copy everything (Ctrl + A, then Ctrl + C).</li>
+
+                <figure>
+                    <img src="course_schedule.png">
+                    <figcaption> Yes this is my actual schedule. Please don't use it for nefarious purposes. </figcaption>
+                </figure>
+                
+                <li>Then, come back to my website, and paste it into the textbox below. Your planned classes will then show up in the maps, as demonstrated below.</li>
+            </ol>
+            
+            For each day, each location is labeled by what order the classes are in (e.g. if your second class of the day is at Dreese Labs, then a marker on Dreese will be labeled with a 2). Clicking/tapping a marker on the map will show you the details for the class. 
+
+            If you have multiple classes in the same location, it will be labeled for each class; tapping on the marker will cause multiple markers to come out from the original marker - with each labeled by their order - and then you can click on any of the individual markers to view class details.
+        </div>
+
+        <app-root></app-root> <!-- Actual maps and input -->
+    <script src="polyfills-FFHMD2TL.js" type="module"></script><script src="main-Y2REAC36.js" type="module"></script></body>
 </html>
