@@ -62,7 +62,7 @@ export class MapTabComponent implements AfterViewInit {
 
 		// add new markers, tooltips, and routes
 		courses.forEach((course, number) => 
-			this.markers.push(this.createMarker(course, number, courses.length))
+            { if(course.inPerson) this.markers.push(this.createMarker(course, number, courses.length)); }
 		)
 		this.drawRoute();
 

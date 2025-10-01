@@ -20,6 +20,15 @@ enum Fields {
 export const MON=0, TUE=1, WED=2, THU=3, FRI=4;
 export const DAYS=[MON,TUE,WED,THU,FRI];
 /**
+ * Constants for indices of different course items
+ */
+const DEP_INDEX = 0, NUM_INDEX = 1, DAYTIMELOC_INDEX = 6, MODE_INDEX = 9;
+/**
+ * Map format to pass to OSU API
+ */
+const MAP_FORMAT = "4140";
+
+/**
  * Representation of a course.
  */
 export class Course {
@@ -44,7 +53,6 @@ export class Course {
     }
 }
 
-const DEP_INDEX = 1, NUM_INDEX = 2, DAYTIMELOC_INDEX = 7, MODE_INDEX = 10;
 
 /**
  * Returns a {@linkcode Course} filled with the fields given.
@@ -81,14 +89,14 @@ function splitIntoCourseTokens(tokens: Array<string>) {
 
     let start = 0;
     for (let i = 0; i < tokens.length; i++) {
-        if (tokens[i] == "\n") {
+        if (tokens[i].startsWith("\n") && !tokens[i].endsWith("\n")) {
             courseTokens.push(tokens.slice(start, i));
-            start = i + 1;
+            start = i;
         }
     }
     courseTokens.push(tokens.slice(start,));
 
-    return courseTokens;
+    return courseTokens.slice(1,);
 }
 
 async function getCoordinates(inPerson: boolean, loc: string): Promise<number[] | null> {
@@ -104,7 +112,7 @@ async function getCoordinates(inPerson: boolean, loc: string): Promise<number[] 
             fetch(BASE_COORDINATE_URL + new URLSearchParams({
                 "magicKey": json.suggestions[0].magicKey,
                 "f": "json",
-                "outSR": "4140"
+                "outSR": MAP_FORMAT
             })).then((response) => // parse coords json
                 response.json()
             ).then((json) => // get coords from json
